@@ -1,0 +1,6 @@
+.DS_Store
+._*
+.Rhistory
+.RData
+__pycache__/
+*.pyc

@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ануар Беисов — риск-аналитика, макрофинансы, ML</title>
+<meta name="description" content="Портфолио Ануара Беисова: проекты по риск-аналитике, макрофинансам и машинному обучению — модели, дашборды, отчёты и демо-приложения.">
+<meta name="color-scheme" content="light">
+
+<!--
+  ============================================================================
+  КАК ДОБАВИТЬ ПРОЕКТ
+  ============================================================================
+  1. Открой этот файл и найди ниже блок «ДАННЫЕ — РЕДАКТИРУЕШЬ ТОЛЬКО ЗДЕСЬ»
+     (константа PROJECTS в начале <script>).
+  2. Скопируй пустую заготовку объекта, которая лежит сразу под массивом
+     (константа TEMPLATE), вставь в массив и заполни поля.
+  3. Порядок в массиве = порядок на странице. Первым ставь самое сильное.
+  4. Пока ссылки нет — пиши url: "#TODO". Она отрисуется приглушённой,
+     с пометкой «скоро», и сайт не будет выглядеть сломанным.
+  5. Обложки (необязательно) клади в img/covers/ рядом с этим файлом
+     и указывай путь в поле cover, например "img/covers/policy.png".
+  6. Дату внизу страницы правит константа UPDATED.
+
+  Ничего, кроме блока данных, трогать не нужно: вёрстка сама соберёт
+  карточки, фильтр по тегам и кнопки любых типов ссылок.
+  ============================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  /* ---- цвета: всё меняется здесь ---- */
+  --bg:        #f4f2ed;
+  --panel:     #fbfaf7;
+  --ink:       #191917;
+  --ink-2:     #4b4a45;
+  --ink-3:     #85837a;
+  --line:      #dedad1;
+  --line-2:    #cbc6ba;
+  --accent:    #2e5266;
+  --accent-bg: #e9eef1;
+
+  /* ---- шрифтовые роли ---- */
+  --display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --body:    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  --mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --radius: 2px;
+  --maxw: 900px;
+}
+
+*{ box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.55;
+  font-feature-settings:"kern" 1;
+  -webkit-font-smoothing:antialiased;
+}
+img{ max-width:100%; display:block; }
+
+a{ color:var(--accent); }
+:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+
+.wrap{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:0 24px;
+}
+
+/* ---------- шапка ---------- */
+.head{ padding:64px 0 36px; }
+.head h1{
+  font-family:var(--display);
+  font-weight:600;
+  font-size:clamp(30px, 6vw, 44px);
+  line-height:1.15;
+  letter-spacing:-0.01em;
+  margin:0 0 10px;
+}
+.head .role{
+  margin:0 0 22px;
+  max-width:62ch;
+  color:var(--ink-2);
+  font-size:17px;
+}
+.contacts{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 20px;
+  font-family:var(--mono);
+  font-size:13px;
+}
+.contacts a{
+  color:var(--ink-2);
+  text-decoration:none;
+  border-bottom:1px solid var(--line-2);
+  padding-bottom:1px;
+}
+.contacts a:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+.contacts .off{ color:var(--ink-3); cursor:default; }
+
+/* ---------- фильтр ---------- */
+.filter{
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:14px 0;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+}
+.filter__label{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  margin-right:6px;
+}
+.chip{
+  font-family:var(--mono);
+  font-size:12.5px;
+  color:var(--ink-2);
+  background:transparent;
+  border:1px solid var(--line-2);
+  border-radius:var(--radius);
+  padding:5px 11px;
+  cursor:pointer;
+  transition:background-color .12s linear, color .12s linear, border-color .12s linear;
+}
+.chip:hover{ border-color:var(--accent); color:var(--accent); }
+.chip[aria-pressed="true"]{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+}
+
+/* ---------- список проектов ---------- */
+.projects{ padding:8px 0 0; }
+.card{
+  display:grid;
+  grid-template-columns:56px 1fr;
+  gap:0 20px;
+  padding:34px 0;
+  border-bottom:1px solid var(--line);
+}
+.card[hidden]{ display:none; }
+.card__num{
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--ink-3);
+  padding-top:4px;
+  letter-spacing:.04em;
+}
+.card__meta{
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:.03em;
+  color:var(--ink-3);
+  margin:0 0 8px;
+}
+.card__title{
+  font-family:var(--display);
+  font-weight:600;
+  font-size:clamp(21px, 3.4vw, 26px);
+  line-height:1.25;
+  margin:0 0 10px;
+  letter-spacing:-0.005em;
+}
+.card__tagline{
+  margin:0 0 16px;
+  color:var(--ink-2);
+  max-width:64ch;
+}
+.card__result{
+  border-left:3px solid var(--accent);
+  padding:2px 0 2px 14px;
+  margin:0 0 16px;
+  max-width:62ch;
+}
+.card__result b{
+  display:block;
+  font-family:var(--mono);
+  font-weight:500;
+  font-size:11px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:3px;
+}
+.card__note{
+  margin:0 0 16px;
+  font-size:14px;
+  color:var(--ink-3);
+  max-width:62ch;
+}
+.card__cover{
+  margin:0 0 18px;
+  border:1px solid var(--line);
+  background:var(--panel);
+}
+.card__cover img{ width:100%; height:auto; }
+
+/* ---------- ссылки-кнопки ---------- */
+.links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.btn{
+  display:inline-flex;
+  align-items:baseline;
+  gap:8px;
+  font-family:var(--mono);
+  font-size:12.5px;
+  text-decoration:none;
+  color:var(--ink);
+  background:var(--panel);
+  border:1px solid var(--line-2);
+  border-radius:var(--radius);
+  padding:7px 12px;
+  cursor:pointer;
+  transition:border-color .12s linear, color .12s linear, background-color .12s linear;
+}
+.btn:hover{ border-color:var(--accent); color:var(--accent); }
+.btn__kind{
+  color:var(--ink-3);
+  font-size:11px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.btn:hover .btn__kind{ color:var(--accent); }
+.btn__hint{
+  color:var(--ink-3);
+  font-size:11px;
+}
+.btn--soon{
+  color:var(--ink-3);
+  background:transparent;
+  border-style:dashed;
+  border-color:var(--line-2);
+  cursor:default;
+}
+.btn--soon:hover{ color:var(--ink-3); border-color:var(--line-2); }
+.btn--soon:hover .btn__kind{ color:var(--ink-3); }
+.btn--on{ border-color:var(--accent); color:var(--accent); background:var(--accent-bg); }
+
+/* ---------- встроенное демо ---------- */
+.embed{
+  margin-top:16px;
+  border:1px solid var(--line-2);
+  background:var(--panel);
+}
+.embed[hidden]{ display:none; }
+.embed__bar{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--ink-3);
+  padding:7px 10px;
+  border-bottom:1px solid var(--line);
+}
+.embed iframe{
+  display:block;
+  width:100%;
+  height:560px;
+  border:0;
+  background:#fff;
+}
+
+/* ---------- заглушка и подвал ---------- */
+.more{
+  display:grid;
+  grid-template-columns:56px 1fr;
+  gap:0 20px;
+  padding:30px 0 34px;
+  border-bottom:1px solid var(--line);
+}
+.more p{
+  margin:0;
+  font-family:var(--mono);
+  font-size:13px;
+  color:var(--ink-3);
+}
+.foot{
+  padding:26px 0 60px;
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--ink-3);
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px 18px;
+}
+
+/* ---------- адаптив ---------- */
+@media (max-width:640px){
+  .wrap{ padding:0 18px; }
+  .head{ padding:44px 0 28px; }
+  .card, .more{ grid-template-columns:1fr; gap:0; }
+  .card__num{ padding:0 0 6px; }
+  .more p{ padding-top:0; }
+  .embed iframe{ height:440px; }
+}
+@media (max-width:380px){
+  .wrap{ padding:0 14px; }
+  .btn{ font-size:12px; padding:6px 10px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <header class="head">
+    <h1>Ануар Беисов</h1>
+    <p class="role">Риск-аналитика, макрофинансы и машинное обучение. Алматы.</p>
+    <ul class="contacts" id="contacts"></ul>
+  </header>
+
+  <nav class="filter" id="filter" aria-label="Фильтр проектов по темам">
+    <span class="filter__label">Темы</span>
+  </nav>
+
+  <main class="projects" id="projects"></main>
+
+  <div class="more">
+    <div></div>
+    <p>Ещё несколько проектов готовятся — здесь появятся модели, отчёты и демо.</p>
+  </div>
+
+  <footer class="foot">
+    <span id="updated"></span>
+    <span>Все материалы — по внешним ссылкам</span>
+  </footer>
+
+</div>
+
+<script>
+/* ==========================================================================
+   ДАННЫЕ — РЕДАКТИРУЕШЬ ТОЛЬКО ЗДЕСЬ
+   ========================================================================== */
+
+const UPDATED = "август 2026";   // дата в подвале
+
+const CONTACTS = [
+  { txt: "anuar.beisov1992@gmail.com", url: "mailto:anuar.beisov1992@gmail.com" },
+  { txt: "GitHub",   url: "https://github.com/abeisov" },
+  { txt: "LinkedIn", url: "https://www.linkedin.com/in/%D0%B0%D0%BD%D1%83%D0%B0%D1%80-%D0%B1-7ba167254/" },
+  { txt: "Telegram", url: "https://t.me/anuarbeissov1992" }
+];
+
+const PROJECTS = [
+
+  {
+    title:   "Агент для проверки кредитных ковенантов",
+    meta:    "2026 · LLM · Хакатон",
+    tags:    ["ML и агенты"],
+    tagline: "Агент читает пакет PDF — кредитные договоры, аудиторские отчёты, KYC, служебные записки — и реестр транзакций, и по каждой паре «заёмщик × пункт договора» выносит вердикт: нарушен ли ковенант, каково фактическое значение и какая транзакция это доказывает.",
+    result:  "Принцип «LLM понимает текст, код считает числа»: модель компилирует пункт договора в машинную спецификацию, а суммы, сравнение с порогом и поиск улики выполняет детерминированный код на Decimal. Ни одно число в ответе не приходит из ответа модели.",
+    note:    "Halyk AI Challenge, команда First Fin AI.",
+    cover:   "",
+    links: [
+      { kind: "video", txt: "Запись демо", url: "#TODO" },
+      { kind: "code",  txt: "Репозиторий", url: "https://github.com/abeisov/halyk_agent" }
+    ]
+  }
+
+  ,{
+    title:   "S&P 500: стационарность, ARMA, GARCH и прогноз",
+    meta:    "2025 · R · Временные ряды",
+    tags:    ["Макро и рынки"],
+    tagline: "Пять лет дневных котировок S&P 500: проверка стационарности, перебор 20 спецификаций ARMA по AIC, диагностика остатков, GARCH(1,1) и прогноз доходности на 10, 20 и 30 дней с доверительными интервалами.",
+    result:  "Точечный прогноз AR(9) на 30 дней укладывается в ±0,4%, а 95% интервал — ±2,6%: направление доходности такими моделями не предсказывается. Предсказуема волатильность — GARCH(1,1) с персистентностью 0,97 снимает её кластеризацию (Ljung-Box по квадратам остатков p = 0,97), и именно это работает для оценки риска.",
+    note:    "Курсовой проект по прогнозированию временных рядов, 2025.",
+    cover:   "",
+    links: [
+      { kind: "embed",  txt: "Разбор на странице", url: "files/r/sp500/index.html", hint: "" },
+      { kind: "report", txt: "Разбор целиком",     url: "files/r/sp500/index.html" },
+      { kind: "code",   txt: "Скрипт .R",          url: "files/r/sp500-timeseries.R" },
+      { kind: "data",   txt: "Данные .csv",        url: "files/r/sp500.csv" },
+      { kind: "file",   txt: "Описание датасета",  url: "files/docs/sp500-dataset.pdf" }
+    ]
+  }
+
+  ,{
+    title:   "Мезгіл — маркетплейс бронирования заведений",
+    meta:    "2026 · Продукт · Next.js",
+    tags:    ["Продукты и сайты"],
+    tagline: "Платформа для Алматы: каталог заведений с фильтрами по формату вечера, карточки с меню, фото и отзывами, бронирование в пару шагов и AI-подбор места по описанию повода. Отдельно — кабинет владельца заведения.",
+    result:  "Дашборд для бизнеса считает просмотры, доход, конверсию просмотр→бронь, загрузку по часам и источники трафика — и превращает это в конкретные действия: добавить слоты в пик, дать скидку в тихий час.",
+    note:    "Демонстрационный MVP: заведения, отзывы и цифры вымышлены.",
+    cover:   "",
+    links: [
+      { kind: "embed", txt: "Открыть на странице", url: "https://market-f-k.vercel.app/", hint: "" },
+      { kind: "demo",  txt: "Сайт целиком",        url: "https://market-f-k.vercel.app/", hint: "" },
+      { kind: "demo",  txt: "Кабинет с аналитикой", url: "https://market-f-k.vercel.app/business/analytics", hint: "" },
+      { kind: "code",  txt: "Репозиторий",         url: "https://github.com/abeisov/market-f-k" }
+    ]
+  }
+
+  ,{
+    title:   "Классификатор пингвинов на Streamlit",
+    meta:    "2025 · Python · Учебный проект",
+    tags:    ["ML и агенты", "Продукты и сайты"],
+    tagline: "Учебный проект на открытом датасете: разведка данных, кодирование категорий, обучение двух моделей и интерактивное предсказание — всё внутри одного веб-приложения.",
+    result:  "Сквозной путь в одном экране: графики, сравнение Decision Tree и KNN по точности на обучении и тесте, предсказание по введённым параметрам с вероятностями классов.",
+    note:    "Учебная работа — здесь важен не предмет данных, а весь путь от датасета до работающего приложения.",
+    cover:   "",
+    links: [
+      { kind: "code",  txt: "Репозиторий", url: "https://github.com/abeisov/first_mlproject" },
+      { kind: "demo",  txt: "Приложение",  url: "https://first-mlproject.streamlit.app/" },
+      { kind: "embed", txt: "Открыть на странице", url: "https://first-mlproject.streamlit.app/?embed=true" }
+    ]
+  }
+
+  ,{
+    title:   "Статистический анализ выборки",
+    meta:    "2025 · Статистика · Excel",
+    tags:    ["Аналитика и BI"],
+    tagline: "Выборка из 100 наблюдений: группировка в интервальный ряд с шагом 7, гистограмма, кумулята и эмпирическая функция распределения, описательные статистики и доверительные интервалы. Всё посчитано в Excel формулами.",
+    result:  "Асимметрия −0,01 при среднем 209,17, медиане 208,50 и моде 207,00 — гипотеза о нормальном распределении не отвергается. 95% доверительный интервал для среднего: [206,31; 212,03].",
+    note:    "Учебная работа, декабрь 2025.",
+    cover:   "",
+    links: [
+      { kind: "embed",  txt: "Отчёт на странице", url: "files/docs/crm5-sample-analysis.html", hint: "" },
+      { kind: "report", txt: "Отчёт целиком",     url: "files/docs/crm5-sample-analysis.html" },
+      { kind: "file",   txt: "Расчёты .xlsx",     url: "files/excel/crm5-sample-analysis.xlsx" },
+      { kind: "file",   txt: "Исходный .docx",    url: "files/docs/crm5-sample-analysis.docx" }
+    ]
+  }
+
+
+  /* --- ЗАГОТОВКИ ПОД СЛЕДУЮЩИЕ ПРОЕКТЫ ---------------------------------
+     Раскомментируй нужный блок — убери открывающие и закрывающие символы
+     комментария вокруг всех заготовок, лишние удали. Порядок в массиве =
+     порядок на сайте.
+
+  ,{
+    title:   "Финансовая модель в Excel",
+    meta:    "2025 · Модель",
+    tags:    ["Excel", "Финмодель"],
+    tagline: "",
+    result:  "",
+    note:    "",
+    cover:   "",
+    links: [
+      { kind: "data", txt: "Открыть модель", url: "#TODO" },
+      { kind: "file", txt: "Скачать .xlsx",  url: "#TODO" }
+    ]
+  }
+
+  ,{
+    title:   "Анализ на R",
+    meta:    "2025 · R",
+    tags:    ["R", "Эконометрика"],
+    tagline: "",
+    result:  "",
+    links: [
+      { kind: "report", txt: "Отчёт", url: "#TODO" },
+      { kind: "code",   txt: "Код",   url: "#TODO" }
+    ]
+  }
+
+  ,{
+    title:   "Приложение с расчётом",
+    meta:    "2026 · Python",
+    tags:    ["Python", "Демо"],
+    tagline: "",
+    result:  "",
+    links: [
+      { kind: "embed", txt: "Открыть внутри страницы", url: "#TODO" },
+      { kind: "demo",  txt: "Открыть в новой вкладке", url: "#TODO" }
+    ]
+  }
+
+  ,{
+    title:   "Презентация с работы",
+    meta:    "2025 · Слайды",
+    tags:    ["BI"],
+    tagline: "",
+    result:  "",
+    links: [
+      { kind: "slides", txt: "Слайды", url: "#TODO" }
+    ]
+  }
+
+  ,{
+    title:   "Отраслевой обзор",
+    meta:    "2025 · Отчёт",
+    tags:    ["Макро"],
+    tagline: "",
+    result:  "",
+    links: [
+      { kind: "report", txt: "Читать", url: "#TODO" }
+    ]
+  }
+
+  --- конец заготовок --------------------------------------------------- */
+
+];
+
+
+/* ---------------------------------------------------------------------------
+   ОТЛОЖЕНО — вернуть, когда появятся материалы.
+   Скопируй нужный блок обратно в PROJECTS (добавь запятую перед { ) и заполни
+   ссылки. Тексты уже написаны, править не обязательно.
+
+  {
+    title:   "Трансмиссия монетарной политики в Казахстане",
+    meta:    "2026 · ML · Макро",
+    tags:    ["Макро и рынки", "ML и агенты"],
+    tagline: "Как изменение базовой ставки доходит до кредита, инфляции и обменного курса и с какой задержкой. Классические подходы сравниваются с ML-моделями на тех же данных.",
+    result:  "Сопоставление лагов трансмиссии по каналам: где ставка работает быстро, а где эффект растворяется.",
+    note:    "Фрагмент диссертации, полный текст — после защиты.",
+    cover:   "",
+    links: [
+      { kind: "report", txt: "Что получилось", url: "#TODO" },
+      { kind: "code",   txt: "R-скрипты",      url: "#TODO" },
+      { kind: "slides", txt: "Слайды",         url: "#TODO" }
+    ]
+  },
+
+  {
+    title:   "Автоматизация отчётности в страховой компании",
+    meta:    "2024 · Дашборды",
+    tags:    ["Аналитика и BI"],
+    tagline: "Регулярная отчётность собиралась вручную из нескольких источников. Построены дашборды и автоматический сбор данных вместо ручной выгрузки.",
+    result:  "Экономия свыше 10 млн тенге в год.",
+    note:    "Код и данные под NDA — доступен только разбор подхода.",
+    cover:   "",
+    links: [
+      { kind: "report", txt: "Как устроено", url: "#TODO" }
+    ]
+  }
+   --------------------------------------------------------------------------- */
+
+/* Пустая заготовка — скопируй объект целиком и вставь в PROJECTS выше.
+   Необязательные поля (result, note, cover) можно просто удалить:
+   пустой блок не рисуется.
+
+const TEMPLATE = {
+  title:   "",        // название
+  meta:    "",        // "2026 · ML · Макро" — год и пара тегов через ·
+  tags:    [],        // для фильтра. Держи 4 темы, не плоди новые:
+                      // "Макро и рынки" | "ML и агенты" |
+                      // "Аналитика и BI" | "Продукты и сайты"
+  tagline: "",        // 1–2 предложения: какая проблема и что сделано
+  result:  "",        // главный вывод или цифра, выделяется визуально
+  note:    "",        // необязательно: "код под NDA", "фрагмент диссертации"
+  cover:   "",        // необязательно: "img/covers/имя.png"
+  links: [
+    // kind: embed | demo | code | report | slides | data | video | file
+    // hint — необязательно: подпись у кнопки. По умолчанию у demo и embed
+    // стоит предупреждение о долгой загрузке; hint: "" его убирает
+    { kind: "", txt: "", url: "", hint: "" }
+  ]
+};
+*/
+
+/* ==========================================================================
+   НИЖЕ — ВЁРСТКА. ДЛЯ ДОБАВЛЕНИЯ ПРОЕКТА ПРАВИТЬ НЕ НУЖНО.
+   ========================================================================== */
+
+// Подписи типов ссылок. Новый kind можно просто использовать в данных —
+// если его здесь нет, подписью станет само значение kind.
+const KINDS = {
+  embed:  { label: "Просмотр", hint: "первая загрузка 20–40 с" },
+  demo:   { label: "Демо",   hint: "новая вкладка, первая загрузка 20–40 с" },
+  code:   { label: "Код"    },
+  report: { label: "Отчёт"  },
+  slides: { label: "Слайды" },
+  data:   { label: "Данные" },
+  video:  { label: "Видео"  },
+  file:   { label: "Файл"   }
+};
+
+const TODO = "#TODO";
+
+function esc(v){
+  return String(v == null ? "" : v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function isSoon(url){
+  return !url || String(url).trim().indexOf(TODO) === 0;
+}
+
+function safeUrl(url){
+  const u = String(url).trim();
+  return /^\s*(javascript|data|vbscript):/i.test(u) ? "#" : u;
+}
+
+function kindOf(kind){
+  const k = KINDS[kind];
+  return { label: (k && k.label) || kind || "Ссылка", hint: (k && k.hint) || "" };
+}
+
+function linkHtml(link, cardIndex, linkIndex){
+  const k = kindOf(link.kind);
+  const txt = link.txt || k.label;
+  // если подпись совпадает с названием типа — тип не дублируем
+  const same = String(txt).toLowerCase().indexOf(String(k.label).toLowerCase()) === 0;
+  const kindTag = same ? "" : '<span class="btn__kind">' + esc(k.label) + '</span>';
+  const label = '<span>' + esc(txt) + '</span>';
+
+  if (isSoon(link.url)){
+    return '<span class="btn btn--soon" aria-disabled="true">' + kindTag + label +
+           '<span class="btn__hint">скоро</span></span>';
+  }
+
+  const hintTxt = (link.hint === undefined) ? k.hint : link.hint;
+  const hint = hintTxt ? '<span class="btn__hint">' + esc(hintTxt) + '</span>' : "";
+
+  if (link.kind === "embed"){
+    const id = "embed-" + cardIndex + "-" + linkIndex;
+    return '<button type="button" class="btn" data-embed="' + id + '" ' +
+           'data-src="' + esc(safeUrl(link.url)) + '" aria-expanded="false" aria-controls="' + id + '">' +
+           kindTag + label + hint + '</button>';
+  }
+
+  return '<a class="btn" href="' + esc(safeUrl(link.url)) + '" target="_blank" rel="noopener">' +
+         kindTag + label + hint + '</a>';
+}
+
+function embedSlotHtml(link, cardIndex, linkIndex){
+  if (link.kind !== "embed" || isSoon(link.url)) return "";
+  const id = "embed-" + cardIndex + "-" + linkIndex;
+  return '<div class="embed" id="' + id + '" hidden>' +
+           '<div class="embed__bar">Приложение загружается на бесплатном хостинге — первый заход занимает 20–40 секунд</div>' +
+           '<iframe title="' + esc(link.txt || "Демо") + '" loading="lazy" allowfullscreen></iframe>' +
+         '</div>';
+}
+
+function cardHtml(p, i){
+  const num = String(i + 1).padStart(2, "0");
+  const links = Array.isArray(p.links) ? p.links : [];
+  let h = "";
+
+  h += '<article class="card" data-tags="' + esc((p.tags || []).join("|")) + '">';
+  h +=   '<div class="card__num">' + num + '</div>';
+  h +=   '<div class="card__body">';
+  if (p.meta)    h += '<p class="card__meta">' + esc(p.meta) + '</p>';
+  if (p.title)   h += '<h2 class="card__title">' + esc(p.title) + '</h2>';
+  if (p.tagline) h += '<p class="card__tagline">' + esc(p.tagline) + '</p>';
+  if (p.result)  h += '<div class="card__result"><b>Результат</b>' + esc(p.result) + '</div>';
+  if (p.note)    h += '<p class="card__note">' + esc(p.note) + '</p>';
+  if (p.cover)   h += '<figure class="card__cover"><img src="' + esc(safeUrl(p.cover)) + '" alt="Скриншот проекта: ' + esc(p.title) + '" loading="lazy" decoding="async"></figure>';
+  if (links.length){
+    h += '<div class="links">';
+    links.forEach(function(l, j){ h += linkHtml(l, i, j); });
+    h += '</div>';
+    links.forEach(function(l, j){ h += embedSlotHtml(l, i, j); });
+  }
+  h +=   '</div>';
+  h += '</article>';
+  return h;
+}
+
+// --- отрисовка ---
+const projectsEl = document.getElementById("projects");
+projectsEl.innerHTML = PROJECTS.map(cardHtml).join("");
+
+document.getElementById("updated").textContent = "Обновлено: " + UPDATED;
+
+document.getElementById("contacts").innerHTML = CONTACTS.map(function(c){
+  if (isSoon(c.url)) return '<li><span class="off">' + esc(c.txt) + ' — скоро</span></li>';
+  const ext = /^mailto:/i.test(c.url) ? "" : ' target="_blank" rel="noopener"';
+  return '<li><a href="' + esc(safeUrl(c.url)) + '"' + ext + '>' + esc(c.txt) + '</a></li>';
+}).join("");
+
+// --- фильтр по тегам ---
+const tags = [];
+PROJECTS.forEach(function(p){
+  (p.tags || []).forEach(function(t){ if (t && tags.indexOf(t) === -1) tags.push(t); });
+});
+
+const filterEl = document.getElementById("filter");
+filterEl.insertAdjacentHTML("beforeend",
+  ['Все'].concat(tags).map(function(t, i){
+    return '<button type="button" class="chip" data-tag="' + esc(i === 0 ? "" : t) + '" aria-pressed="' + (i === 0) + '">' + esc(t) + '</button>';
+  }).join("")
+);
+
+filterEl.addEventListener("click", function(e){
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  const tag = chip.dataset.tag;
+
+  filterEl.querySelectorAll(".chip").forEach(function(c){
+    c.setAttribute("aria-pressed", String(c === chip));
+  });
+
+  projectsEl.querySelectorAll(".card").forEach(function(card){
+    const list = card.dataset.tags ? card.dataset.tags.split("|") : [];
+    card.hidden = !!tag && list.indexOf(tag) === -1;
+  });
+});
+
+// --- разворачивание встроенного демо ---
+projectsEl.addEventListener("click", function(e){
+  const btn = e.target.closest("[data-embed]");
+  if (!btn) return;
+  const box = document.getElementById(btn.dataset.embed);
+  if (!box) return;
+
+  const open = box.hasAttribute("hidden");
+  if (open){
+    const frame = box.querySelector("iframe");
+    if (frame && !frame.src) frame.src = btn.dataset.src;
+    box.removeAttribute("hidden");
+  } else {
+    box.setAttribute("hidden", "");
+  }
+  btn.setAttribute("aria-expanded", String(open));
+  btn.classList.toggle("btn--on", open);
+});
+</script>
+</body>
+</html>

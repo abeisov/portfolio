@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S&P 500 — анализ временного ряда и прогноз</title>
+<style>
+ :root{--bg:#f4f2ed;--panel:#fbfaf7;--ink:#191917;--ink2:#4b4a45;--ink3:#85837a;--line:#dedad1;--accent:#2e5266}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--ink);
+      font:16px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+ .wrap{max-width:780px;margin:0 auto;padding:40px 22px 64px}
+ h1{font:600 26px/1.25 "Source Serif 4",Georgia,serif;margin:0 0 6px}
+ .sub{color:var(--ink3);font-size:13px;margin:0 0 30px;font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+ h2{font:600 17px/1.3 "Source Serif 4",Georgia,serif;margin:36px 0 10px}
+ p{margin:0 0 12px;color:var(--ink2)}
+ .scroll{overflow-x:auto;margin:14px 0 6px}
+ table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel)}
+ th,td{border:1px solid var(--line);padding:7px 10px;text-align:right;white-space:nowrap}
+ th:first-child,td:first-child{text-align:left}
+ th{background:#f0ede6;font-weight:600;font-size:12.5px;text-align:left;color:var(--ink2)}
+ figure{margin:18px 0 6px;background:var(--panel);border:1px solid var(--line);padding:10px}
+ figure img{width:100%;height:auto;display:block}
+ figcaption{font:12px/1.4 "IBM Plex Mono",ui-monospace,Menlo,monospace;color:var(--ink3);margin-top:8px}
+ .concl{border-left:3px solid var(--accent);padding:4px 0 4px 14px;margin:18px 0}
+ .note{font-size:13px;color:var(--ink3);margin-top:36px;border-top:1px solid var(--line);padding-top:14px}
+ code{font:13px "IBM Plex Mono",ui-monospace,Menlo,monospace;background:#ece8e0;padding:1px 4px}
+</style></head><body><div class="wrap">
+
+<h1>S&amp;P 500: стационарность, ARMA, GARCH и прогноз</h1>
+<p class="sub">Ануар Беисов · данные 02.01.2020 – 21.03.2025 · 1312 торговых дней · R</p>
+
+<p>Задача: понять, можно ли предсказать дневную доходность индекса S&amp;P 500 и что вообще
+поддаётся моделированию на дневных данных. Разбор идёт по стандартному маршруту анализа
+временного ряда — от проверки стационарности до сравнения моделей и прогноза.</p>
+
+<h2>1. Данные и описательная статистика</h2>
+<p>Дневные котировки индекса за пять лет, включая обвал марта 2020 года. Работаем
+с логарифмическими доходностями <code>log(Close_t) − log(Close_t−1)</code>.</p>
+<div class="scroll"><table>
+<tr><th>Показатель</th><th>Значение</th></tr>
+<tr><td>Наблюдений</td><td>1 312</td></tr>
+<tr><td>Цена закрытия: среднее</td><td>4 327,8</td></tr>
+<tr><td>Цена закрытия: мин / макс</td><td>2 237,4 / 6 144,1</td></tr>
+<tr><td>Средняя дневная доходность</td><td>0,042 %</td></tr>
+<tr><td>Стандартное отклонение (день)</td><td>1,34 %</td></tr>
+<tr><td>Годовая волатильность</td><td>21,2 %</td></tr>
+<tr><td>Асимметрия</td><td>&#8722;0,81</td></tr>
+<tr><td>Эксцесс (избыточный)</td><td>14,09</td></tr>
+<tr><td>Худший / лучший день</td><td>&#8722;12,77 % / +8,97 %</td></tr>
+</table></div>
+<p>Отрицательная асимметрия и эксцесс 14 против нуля у нормального распределения — это тяжёлые
+хвосты: падения глубже и случаются чаще, чем предсказывает нормальная модель. Для оценки риска
+это принципиально.</p>
+
+<figure><img src="01-price.png" alt="Цена закрытия и лог-доходности S&P 500" loading="lazy">
+<figcaption>Цена растёт с трендом, доходности колеблются вокруг нуля — но кластерами</figcaption></figure>
+
+<figure><img src="02-hist.png" alt="Распределение лог-доходностей против нормального" loading="lazy">
+<figcaption>Пик выше и хвосты тяжелее, чем у нормального распределения</figcaption></figure>
+
+<h2>2. Стационарность</h2>
+<div class="scroll"><table>
+<tr><th>Ряд</th><th>ADF (p)</th><th>KPSS (p)</th><th>Вывод</th></tr>
+<tr><td>Цена закрытия</td><td>0,559</td><td>&lt; 0,01</td><td>нестационарен</td></tr>
+<tr><td>Лог-доходности</td><td>&lt; 0,01</td><td>&gt; 0,10</td><td>стационарны</td></tr>
+</table></div>
+<p>Оба теста согласны, причём проверяют противоположные гипотезы — это и есть причина
+моделировать доходности, а не цену.</p>
+
+<h2>3. Подбор модели: 20 спецификаций по AIC</h2>
+<p>Перебраны AR, MA и ARMA от простых до ARMA(5,5). Разброс между лучшей и худшей моделью —
+около 100 пунктов AIC, но внутри верхушки разница мизерная.</p>
+<div class="scroll"><table>
+<tr><th>Модель</th><th>AIC</th></tr>
+<tr><td>ARMA(4,4)</td><td>&#8722;7 721,65</td></tr>
+<tr><td>AR(9)</td><td>&#8722;7 719,92</td></tr>
+<tr><td>ARMA(9,1)</td><td>&#8722;7 719,79</td></tr>
+<tr><td>ARMA(2,2)</td><td>&#8722;7 718,25</td></tr>
+<tr><td>ARMA(3,3)</td><td>&#8722;7 714,94</td></tr>
+<tr><td>ARMA(1,1)</td><td>&#8722;7 635,99</td></tr>
+<tr><td>AR(1)</td><td>&#8722;7 629,61</td></tr>
+<tr><td>MA(1)</td><td>&#8722;7 621,54</td></tr>
+</table></div>
+<p>Первые пять моделей укладываются в 7 пунктов AIC — выбор между ними статистически
+почти безразличен. Дальше берём AR(9): у неё 7 из 9 лагов значимы на уровне 95 %,
+и она проще, чем ARMA(4,4), в интерпретации.</p>
+
+<h2>4. Что осталось в остатках</h2>
+<div class="scroll"><table>
+<tr><th>Тест Ljung–Box (20 лагов)</th><th>p-value</th><th>Что значит</th></tr>
+<tr><td>Остатки AR(9)</td><td>1,00</td><td>автокорреляции нет</td></tr>
+<tr><td>Квадраты остатков AR(9)</td><td>&lt; 2e&#8722;16</td><td>кластеризация волатильности</td></tr>
+<tr><td>Квадраты остатков GARCH(1,1)</td><td>0,97</td><td>волатильность описана</td></tr>
+</table></div>
+<p>Это ключевой момент разбора. AR(9) вычищает линейную зависимость из самих доходностей,
+но их квадраты остаются зависимыми: спокойные дни идут за спокойными, бурные — за бурными.</p>
+
+<figure><img src="03-acf.png" alt="ACF лог-доходностей и их квадратов" loading="lazy">
+<figcaption>Слева — доходности почти без автокорреляции; справа — их квадраты зависимы на десятках лагов</figcaption></figure>
+
+<p>GARCH(1,1) с коэффициентами α = 0,142 и β = 0,824 закрывает этот эффект: сумма 0,966
+означает высокую персистентность — всплеск волатильности затухает неделями, а не за день.</p>
+
+<h2>5. Прогноз</h2>
+<figure><img src="04-forecast.png" alt="Прогноз AR(9) на 30 дней с доверительным интервалом" loading="lazy">
+<figcaption>Прогноз AR(9) на 30 торговых дней с 95 % доверительным интервалом</figcaption></figure>
+<p>Точечный прогноз колеблется в пределах ±0,36 % и быстро затухает к среднему, тогда как
+95 % доверительный интервал на тридцатый день составляет ±2,62 % — в семь раз шире самого
+прогноза.</p>
+
+<p class="concl">Вывод: направление дневной доходности S&amp;P 500 такими моделями не предсказывается,
+и любой точечный прогноз тонет в собственном доверительном интервале. Предсказуемо другое —
+волатильность: GARCH описывает её кластеризацию, и именно это даёт практическую пользу
+для оценки риска, стресс-тестов и VaR.</p>
+
+<p class="note">Отчёт собран по скрипту Final.R на данных SP500.csv; графики построены средствами
+базового R. Ссылки на код, данные и описание датасета — в карточке проекта на сайте.</p>
+
+</div></body></html>
