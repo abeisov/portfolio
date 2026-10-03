@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Прогноз волатильности S&P 500: HAR-регрессия против VIX</title>
+<style>
+ :root{--bg:#f4f2ed;--panel:#fbfaf7;--ink:#191917;--ink2:#4b4a45;--ink3:#85837a;--line:#dedad1;--accent:#2e5266;--warn:#b4472e}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+ .wrap{max-width:780px;margin:0 auto;padding:40px 22px 64px}
+ h1{font:600 26px/1.25 "Source Serif 4",Georgia,serif;margin:0 0 6px}
+ .sub{color:var(--ink3);font-size:13px;margin:0 0 30px;font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+ h2{font:600 17px/1.3 "Source Serif 4",Georgia,serif;margin:36px 0 10px}
+ p{margin:0 0 12px;color:var(--ink2)}
+ .scroll{overflow-x:auto;margin:14px 0 6px}
+ table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel)}
+ th,td{border:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+ th:first-child,td:first-child{text-align:left}
+ th{background:#f0ede6;font-weight:600;font-size:12.5px;text-align:left;color:var(--ink2)}
+ tr.best td{background:#e9eef1;font-weight:600}
+ figure{margin:18px 0 6px;background:var(--panel);border:1px solid var(--line);padding:10px}
+ figure img{width:100%;height:auto;display:block}
+ figcaption{font:12px/1.4 "IBM Plex Mono",ui-monospace,Menlo,monospace;color:var(--ink3);margin-top:8px}
+ .concl{border-left:3px solid var(--accent);padding:4px 0 4px 14px;margin:18px 0}
+ code{font:13px "IBM Plex Mono",ui-monospace,Menlo,monospace;background:#ece8e0;padding:1px 4px}
+ .note{font-size:13px;color:var(--ink3);margin-top:36px;border-top:1px solid var(--line);padding-top:14px}
+ ol{color:var(--ink2);padding-left:20px} li{margin-bottom:8px}
+</style></head><body><div class="wrap">
+
+<h1>Прогноз волатильности S&amp;P 500: HAR-регрессия против VIX</h1>
+<p class="sub">Ануар Беисов · данные FRED 2017–2026 · 2443 наблюдения · R, без сторонних пакетов</p>
+
+<p>Классическая задача риск-аналитики: насколько сильно рынок будет колебаться в ближайшую
+неделю. От ответа зависят лимиты, маржа, VaR и размер позиции. Проверяем, может ли обычная
+линейная регрессия на правильно построенных признаках обыграть два очевидных ориентира —
+«будет как на прошлой неделе» и «рынок уже всё заложил в VIX».</p>
+
+<h2>1. Постановка</h2>
+<p>Целевая переменная — реализованная волатильность на горизонте пяти торговых дней вперёд,
+в годовом выражении: <code>RV = sqrt(252/5 · Σ r²)</code>. Прогноз строится на момент t,
+и в признаки попадает только то, что к этому моменту уже известно.</p>
+<p>Данные — четыре ряда с FRED без ключей и регистрации: индекс S&amp;P 500, VIX и доходности
+10- и 2-летних казначейских облигаций. Панель после сборки: 2443 дня, с 6 января 2017 по
+25 сентября 2026 года.</p>
+
+<figure><img src="01-context.png" alt="Реализованная волатильность и VIX" loading="lazy">
+<figcaption>VIX почти всегда выше реализованной волатильности — это премия за риск, а не ошибка рынка</figcaption></figure>
+
+<h2>2. Признаки</h2>
+<div class="scroll"><table>
+<tr><th>Признак</th><th>Что это</th><th>Экономический смысл</th></tr>
+<tr><td>rv1, rv5, rv22, rv66</td><td>реализованная волатильность за 1, 5, 22 и 66 дней</td><td>каскад горизонтов модели HAR: день, неделя, месяц, квартал</td></tr>
+<tr><td>VIX</td><td>подразумеваемая волатильность</td><td>ожидания рынка опционов</td></tr>
+<tr><td>наклон кривой</td><td>ставка 10 лет минус 2 года</td><td>индикатор фазы цикла</td></tr>
+<tr><td>доходность за 5 дней</td><td>сумма дневных доходностей</td><td>эффект рычага: падения поднимают волатильность</td></tr>
+</table></div>
+<p>Волатильность распределена логнормально, поэтому регрессия строится в логарифмах,
+а прогноз возвращается в уровни экспонентой.</p>
+
+<h2>3. Как проверялось</h2>
+<p>Проверка идёт вперёд по времени, без подглядывания в будущее. Первые 60 % выборки
+используются только для обучения, дальше окно расширяется, модель переобучается каждый
+21 торговый день. Между концом обучающей выборки и прогнозируемой датой оставлен разрыв
+в пять дней — иначе целевая переменная частично попала бы в обучение. Вне выборки
+остаётся 978 дней: с 1 ноября 2022 по 25 сентября 2026 года.</p>
+
+<h2>4. Результаты</h2>
+<div class="scroll"><table>
+<tr><th>Модель</th><th>RMSE</th><th>MAE</th><th>R² вне выборки</th><th>QLIKE</th></tr>
+<tr class="best"><td>HAR + VIX + рынок</td><td>6,00 п.п.</td><td>3,76 п.п.</td><td>0,388</td><td>0,344</td></tr>
+<tr><td>Гребневая регрессия</td><td>6,00 п.п.</td><td>3,77 п.п.</td><td>0,388</td><td>0,339</td></tr>
+<tr><td>HAR + VIX</td><td>6,30 п.п.</td><td>3,88 п.п.</td><td>0,325</td><td>0,405</td></tr>
+<tr><td>HAR</td><td>6,93 п.п.</td><td>4,28 п.п.</td><td>0,183</td><td>0,491</td></tr>
+<tr><td>VIX как готовый прогноз</td><td>7,69 п.п.</td><td>6,09 п.п.</td><td>−0,006</td><td>0,417</td></tr>
+<tr><td>Наивный: как на прошлой неделе</td><td>8,16 п.п.</td><td>5,22 п.п.</td><td>−0,131</td><td>0,806</td></tr>
+</table></div>
+<figure><img src="04-models.png" alt="Сравнение моделей" loading="lazy">
+<figcaption>Слева ошибка прогноза, справа доля объяснённой дисперсии вне обучающей выборки</figcaption></figure>
+<p>Преимущество над наивным прогнозом проверено тестом Диболда–Мариано с поправкой
+Ньюи–Уэста на перекрытие окон: для полной модели p = 0,005, для HAR + VIX p = 0,011,
+для чистого HAR p = 0,068, а для VIX самого по себе p = 0,50 — то есть VIX статистически
+не лучше наивного правила.</p>
+
+<figure><img src="02-oos.png" alt="Факт и прогноз вне выборки" loading="lazy">
+<figcaption>Модель держит уровень и повороты, но срезает пики: в апреле 2025 факт дошёл до 86 % годовых, прогноз — около 65 %</figcaption></figure>
+
+<figure><img src="03-scatter.png" alt="Прогноз против факта" loading="lazy">
+<figcaption>Облако смещено ниже диагонали справа — крупные всплески недооцениваются</figcaption></figure>
+
+<h2>5. Что двигает прогноз</h2>
+<figure><img src="05-coefs.png" alt="Стандартизованные коэффициенты" loading="lazy">
+<figcaption>Вклад признаков в стандартных отклонениях</figcaption></figure>
+<div class="scroll"><table>
+<tr><th>Признак</th><th>Коэффициент</th><th>t-статистика</th></tr>
+<tr><td>log VIX</td><td>1,162</td><td>21,4</td></tr>
+<tr><td>наклон кривой доходности</td><td>−0,177</td><td>−10,8</td></tr>
+<tr><td>доходность за 5 дней</td><td>−3,199</td><td>−7,9</td></tr>
+<tr><td>log RV за 5 дней</td><td>0,059</td><td>2,4</td></tr>
+<tr><td>log RV за 22 дня</td><td>0,049</td><td>1,4</td></tr>
+<tr><td>log RV за 1 день</td><td>−0,010</td><td>−1,3</td></tr>
+</table></div>
+<ol>
+<li><b>VIX — сильнейший признак, но сам по себе плохой прогноз.</b> Как готовый ответ он
+даёт R² около нуля, потому что систематически завышает будущую волатильность на величину
+премии за риск. Ценность появляется, когда регрессия корректирует его уровень.</li>
+<li><b>Эффект рычага виден отчётливо:</b> падение рынка на 1 % за неделю поднимает прогноз
+волатильности примерно на 3 %.</li>
+<li><b>Наклон кривой работает как индикатор режима:</b> чем она площе, тем выше ожидаемая
+волатильность.</li>
+<li><b>Регуляризация ничего не дала.</b> Гребневая регрессия повторила результат обычного
+МНК: признаков мало, они осмысленны, переобучения нет. Это тоже результат — усложнение
+не всегда окупается.</li>
+<li><b>Наивный прогноз хуже константы</b> (R² = −0,13): волатильность возвращается к
+среднему быстрее, чем «как было вчера» успевает за ней.</li>
+</ol>
+
+<figure><img src="06-residuals.png" alt="Диагностика остатков" loading="lazy">
+<figcaption>Остатки близки к нормальным, но автокоррелированы — следствие перекрывающихся окон</figcaption></figure>
+
+<p class="concl">Главный вывод для практики: линейная регрессия на горизонте недели
+объясняет около 40 % дисперсии волатильности и уверенно обыгрывает оба рыночных ориентира,
+но систематически срезает пики. Для лимитов и маржи этого достаточно, для стресс-тестов —
+нет, там нужен сценарный слой поверх модели.</p>
+
+<p class="note">Код, данные и инструкция по воспроизведению — в репозитории проекта,
+ссылка в карточке на сайте. Полный прогон занимает меньше минуты и требует только базового R.</p>
+
+</div></body></html>

@@ -1,0 +1,6 @@
+.Rhistory
+.RData
+.DS_Store
+data/*.csv
+data/panel.rds
+outputs/results.rds
