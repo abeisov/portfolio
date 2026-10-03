@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кредитный скоринг: скоркарта против градиентного бустинга</title>
+<style>
+ :root{--bg:#f4f2ed;--panel:#fbfaf7;--ink:#191917;--ink2:#4b4a45;--ink3:#85837a;--line:#dedad1;--accent:#2e5266;--warn:#b4472e}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+ .wrap{max-width:780px;margin:0 auto;padding:40px 22px 64px}
+ h1{font:600 26px/1.25 "Source Serif 4",Georgia,serif;margin:0 0 6px}
+ .sub{color:var(--ink3);font-size:13px;margin:0 0 30px;font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+ h2{font:600 17px/1.3 "Source Serif 4",Georgia,serif;margin:36px 0 10px}
+ p{margin:0 0 12px;color:var(--ink2)}
+ .scroll{overflow-x:auto;margin:14px 0 6px}
+ table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel)}
+ th,td{border:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+ th:first-child,td:first-child{text-align:left}
+ th{background:#f0ede6;font-weight:600;font-size:12.5px;text-align:left;color:var(--ink2)}
+ tr.best td{background:#e9eef1;font-weight:600}
+ figure{margin:18px 0 6px;background:var(--panel);border:1px solid var(--line);padding:10px}
+ figure img{width:100%;height:auto;display:block}
+ figcaption{font:12px/1.4 "IBM Plex Mono",ui-monospace,Menlo,monospace;color:var(--ink3);margin-top:8px}
+ .concl{border-left:3px solid var(--accent);padding:4px 0 4px 14px;margin:18px 0}
+ code{font:13px "IBM Plex Mono",ui-monospace,Menlo,monospace;background:#ece8e0;padding:1px 4px}
+ .note{font-size:13px;color:var(--ink3);margin-top:36px;border-top:1px solid var(--line);padding-top:14px}
+ ol{color:var(--ink2);padding-left:20px} li{margin-bottom:8px}
+</style></head><body><div class="wrap">
+
+<h1>Кредитный скоринг: скоркарта против градиентного бустинга</h1>
+<p class="sub">Ануар Беисов · 30 000 заёмщиков · Python: pandas, scikit-learn</p>
+
+<p>Полный цикл скоринговой модели: от сырых выписок по картам до скоркарты в баллах
+и расчёта, что отбор даёт банку. Главный вопрос по ходу — сколько качества стоит
+интерпретируемость, за которую держатся риск-подразделения и регулятор.</p>
+
+<h2>1. Данные и постановка</h2>
+<p>UCI «Default of credit card clients»: 30 000 заёмщиков тайваньского банка, шесть месяцев
+истории платежей, счетов и погашений. Целевая переменная — выход в дефолт в следующем
+месяце, базовая доля дефолтов 22,1 %. Разбиение стратифицированное, 70 на 30:
+21 000 на обучение, 9000 на отложенную проверку.</p>
+
+<h2>2. Признаки</h2>
+<p>Исходные колонки напрямую непригодны: коды состояния платежа ничего не говорят сами
+по себе, а суммы счетов несопоставимы между клиентами с разными лимитами. Построено
+18 признаков в трёх группах — глубина и динамика просрочки, использование лимита,
+дисциплина погашения, — плюс лимит и демография.</p>
+
+<h2>3. Отбор: WoE и Information Value</h2>
+<p>Для каждого признака построен WoE-биннинг и посчитан Information Value. Биннинг
+настраивается только на обучающей выборке, иначе информация о тесте протекает в модель.</p>
+<figure><img src="05-iv.png" alt="Information Value признаков" loading="lazy">
+<figcaption>Просрочки — выше 0,8, это уровень «очень сильный»; демография у самого нуля</figcaption></figure>
+<div class="scroll"><table>
+<tr><th>Признак</th><th>IV</th><th>Трактовка</th></tr>
+<tr><td>Просрочка в последнем месяце</td><td>0,878</td><td>очень сильный</td></tr>
+<tr><td>Число месяцев с просрочкой</td><td>0,869</td><td>очень сильный</td></tr>
+<tr><td>Максимальная просрочка</td><td>0,807</td><td>очень сильный</td></tr>
+<tr><td>Тренд просрочки</td><td>0,405</td><td>сильный</td></tr>
+<tr><td>Месяцы без единого платежа</td><td>0,267</td><td>средний</td></tr>
+<tr><td>Кредитный лимит</td><td>0,174</td><td>средний</td></tr>
+<tr><td>Доля погашения счёта</td><td>0,170</td><td>средний</td></tr>
+<tr><td>Образование</td><td>0,035</td><td>слабый</td></tr>
+<tr><td>Возраст</td><td>0,014</td><td>бесполезный</td></tr>
+<tr><td>Пол</td><td>0,010</td><td>бесполезный</td></tr>
+<tr><td>Семейное положение</td><td>0,005</td><td>бесполезный</td></tr>
+</table></div>
+<p>В модель вошли 12 признаков из 18: отсеяны слабые по IV и дублирующие друг друга
+при корреляции выше 0,8 — из пяти признаков просрочки осталось три.</p>
+
+<h2>4. Три модели на одной задаче</h2>
+<div class="scroll"><table>
+<tr><th>Модель</th><th>AUC</th><th>Gini</th><th>KS</th><th>PR-AUC</th><th>Brier</th><th>AUC на 5-fold CV</th></tr>
+<tr><td>Скоркарта (логит на WoE)</td><td>0,759</td><td>0,518</td><td>0,395</td><td>0,522</td><td>0,139</td><td>0,771 ± 0,010</td></tr>
+<tr><td>Логит на сырых признаках</td><td>0,754</td><td>0,509</td><td>0,403</td><td>0,516</td><td>0,140</td><td>0,766 ± 0,012</td></tr>
+<tr class="best"><td>Градиентный бустинг</td><td>0,780</td><td>0,559</td><td>0,426</td><td>0,557</td><td>0,135</td><td>0,787 ± 0,009</td></tr>
+</table></div>
+<figure><img src="01-roc-pr.png" alt="ROC и Precision-Recall" loading="lazy">
+<figcaption>Разрыв между скоркартой и бустингом виден, но невелик</figcaption></figure>
+<figure><img src="02-ks.png" alt="Статистика Колмогорова–Смирнова" loading="lazy">
+<figcaption>KS скоркарты 0,395 — разделение хорошее по меркам розничного скоринга</figcaption></figure>
+
+<h2>5. Что отбор даёт банку</h2>
+<figure><img src="04-business.png" alt="Эффект отбора" loading="lazy">
+<figcaption>Слева — дефолт в портфеле при разной строгости отбора, справа — концентрация риска по децилям</figcaption></figure>
+<div class="scroll"><table>
+<tr><th>Одобряем заявок</th><th>Порог балла</th><th>Дефолт среди одобренных</th><th>Отсечено будущих дефолтов</th></tr>
+<tr><td>50 %</td><td>567</td><td>9,9 %</td><td>77,6 %</td></tr>
+<tr><td>60 %</td><td>562</td><td>11,1 %</td><td>70,0 %</td></tr>
+<tr class="best"><td>70 %</td><td>553</td><td>12,7 %</td><td>60,0 %</td></tr>
+<tr><td>80 %</td><td>533</td><td>14,0 %</td><td>49,5 %</td></tr>
+<tr><td>90 %</td><td>508</td><td>17,0 %</td><td>30,7 %</td></tr>
+<tr><td>Без скоринга</td><td>—</td><td>22,1 %</td><td>0 %</td></tr>
+</table></div>
+<p>В худшем дециле по баллу дефолтит 68 % заёмщиков, в лучшем — 7,7 %. Лифт худшего
+дециля 3,07: риск концентрируется там, где и должен.</p>
+
+<h2>6. Скоркарта в баллах</h2>
+<p>Коэффициенты регрессии переведены в баллы по стандартной схеме: PDO = 20, базовый
+балл 600 при шансах 20 к 1. Получается таблица из 60 строк вида «признак — интервал —
+баллы», которую можно отдать в кредитный комитет и объяснить каждое решение по заявке.</p>
+<figure><img src="06-scorecard.png" alt="Строки скоркарты" loading="lazy">
+<figcaption>Столбцы — баллы за попадание в интервал, линия — фактическая доля дефолтов в нём</figcaption></figure>
+
+<h2>7. Калибровка</h2>
+<figure><img src="03-calibration.png" alt="Калибровка моделей" loading="lazy">
+<figcaption>Предсказанная вероятность против фактической доли дефолтов по децилям</figcaption></figure>
+
+<ol>
+<li><b>Платёжная дисциплина решает всё.</b> Признаки просрочки дают IV выше 0,8,
+остальное — добавка в несколько сотых Gini.</li>
+<li><b>Демография бесполезна,</b> и это удобно: кредитовать по полу и возрасту
+юридически рискованно, а модель без них ничего не теряет.</li>
+<li><b>Бустинг выигрывает четыре пункта Gini.</b> Разница реальная, но вопрос ставится
+так: стоит ли 0,04 Gini потери объяснимости перед кредитным комитетом и регулятором.
+Для первой модели в портфеле — нет.</li>
+<li><b>Качество ранжирования — не единственное, что важно.</b> Когда решение принимается
+на пороге, значение имеет калибровка: насколько предсказанные 15 % дефолта означают
+именно 15 %.</li>
+</ol>
+
+<p class="concl">Практический вывод: скоркарта на 12 признаках снижает дефолт в портфеле
+с 22,1 % до 12,7 % при одобрении 70 % заявок и при этом остаётся полностью объяснимой.
+Бустинг стоит держать рядом как ориентир качества — он показывает, сколько ещё можно
+выжать, если отказаться от требования интерпретируемости.</p>
+
+<p class="note">Данные 2005 года и одного рынка: переносится методика, а не коэффициенты.
+Выборка одномоментная, поэтому out-of-time проверки нет — на реальном портфеле модель
+обязательно тестируется на более позднем периоде. Код и инструкция по воспроизведению —
+в репозитории, ссылка в карточке на сайте.</p>
+
+</div></body></html>
