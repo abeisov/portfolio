@@ -15,6 +15,7 @@
 
     index.html          весь сайт
     files/excel/        таблицы .xlsx, .csv и их HTML-версии
+    files/powerbi/      браузерные версии отчётов Power BI
     files/r/            код на R, данные, собранные отчёты
     files/docs/         .pdf, .docx
     img/covers/         скриншоты для обложек карточек

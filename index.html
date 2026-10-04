@@ -358,7 +358,7 @@ a{ color:var(--accent); }
    ДАННЫЕ — РЕДАКТИРУЕШЬ ТОЛЬКО ЗДЕСЬ
    ========================================================================== */
 
-const UPDATED = "август 2026";   // дата в подвале
+const UPDATED = "октябрь 2026";   // дата в подвале
 
 const CONTACTS = [
   { txt: "anuar.beisov1992@gmail.com", url: "mailto:anuar.beisov1992@gmail.com" },
@@ -479,6 +479,20 @@ const PROJECTS = [
     links: [
       { kind: "video", txt: "Запись демо", url: "#TODO" },
       { kind: "code",  txt: "Репозиторий", url: "https://github.com/abeisov/halyk_agent" }
+    ]
+  }
+
+  ,{
+    title:   "Банковский сектор: активы, кредиты и депозиты",
+    meta:    "2024 · Power BI · Банковская аналитика",
+    tags:    ["Аналитика и BI", "Макро и рынки"],
+    tagline: "Семь месячных срезов за июнь–декабрь 2024 года: сравнение банков по активам, ссудному портфелю, обязательствам, просроченной задолженности и структуре депозитов.",
+    result:  "Две страницы исходного отчёта перенесены в браузер: общий обзор с фильтрами по месяцу и банку, а также динамика активов, депозитов и кредитов Jusan с текстовыми наблюдениями.",
+    note:    "Для просмотра Power BI не нужен; графики и таблица открываются прямо на сайте.",
+    cover:   "",
+    links: [
+      { kind: "embed",  txt: "Посмотреть на странице", url: "files/powerbi/banks/index.html", hint: "" },
+      { kind: "report", txt: "Открыть отчёт целиком", url: "files/powerbi/banks/index.html" }
     ]
   }
 
@@ -761,8 +775,11 @@ function linkHtml(link, cardIndex, linkIndex){
 function embedSlotHtml(link, cardIndex, linkIndex){
   if (link.kind !== "embed" || isSoon(link.url)) return "";
   const id = "embed-" + cardIndex + "-" + linkIndex;
+  const loadingBar = /^https?:\/\//i.test(link.url)
+    ? '<div class="embed__bar">Приложение загружается на бесплатном хостинге — первый заход занимает 20–40 секунд</div>'
+    : "";
   return '<div class="embed" id="' + id + '" hidden>' +
-           '<div class="embed__bar">Приложение загружается на бесплатном хостинге — первый заход занимает 20–40 секунд</div>' +
+           loadingBar +
            '<iframe title="' + esc(link.txt || "Демо") + '" loading="lazy" allowfullscreen></iframe>' +
          '</div>';
 }

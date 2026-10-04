@@ -7,6 +7,7 @@
 
 Куда класть:
   files/excel/ — .xlsx, .xlsm — модели и таблицы     -> kind: "file"
+  files/powerbi/ — .html — отчёты Power BI на сайте   -> kind: "embed" / "report"
   files/r/     — .R, .Rmd, .qmd — код и отчёты       -> kind: "code"
                  собранный .html отчёт               -> kind: "report"
   files/docs/  — .pdf, .pptx — отчёты и презентации  -> kind: "report" / "slides"

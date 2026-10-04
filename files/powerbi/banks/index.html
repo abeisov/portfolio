@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Банковский сектор Казахстана — интерактивный отчёт</title>
+<meta name="description" content="Интерактивный обзор активов, кредитов, обязательств, депозитов и просроченной задолженности банков Казахстана за июнь–декабрь 2024 года.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="echarts.min.js" defer></script>
+<script src="data.js" defer></script>
+<script src="report.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <a class="back" href="../../../index.html">← Портфолио Ануара Беисова</a>
+    <p class="eyebrow">POWER BI / БРАУЗЕРНАЯ ВЕРСИЯ</p>
+    <h1>Банковский сектор Казахстана</h1>
+    <p class="lead">Активы, кредиты, обязательства, просроченная задолженность и депозиты 21 банка в семи месячных срезах 2024 года.</p>
+    <div class="meta"><span>Июнь — декабрь 2024</span><span>21 банк в каждом срезе</span><span>Данные из исходного отчёта Power BI</span></div>
+  </header>
+
+  <nav class="tabs" aria-label="Разделы отчёта">
+    <button type="button" class="tab active" data-tab="overview" aria-selected="true">Обзор банков</button>
+    <button type="button" class="tab" data-tab="jusan" aria-selected="false">Jusan</button>
+  </nav>
+
+  <section id="overview" class="tab-panel">
+    <div class="filters">
+      <div><label for="month">Месячный срез</label><select id="month"></select></div>
+      <div><label for="bank">Банк</label><select id="bank"></select></div>
+      <button type="button" id="reset" class="reset">Сбросить фильтры</button>
+    </div>
+    <p class="filter-note">Месяц меняет сравнение банков и структуру депозитов. Выбор банка также меняет графики динамики.</p>
+
+    <div class="kpis" aria-live="polite">
+      <div class="kpi"><span>Активы</span><strong id="kpi-assets">—</strong><small>трлн ₸</small></div>
+      <div class="kpi"><span>Ссудный портфель</span><strong id="kpi-loans">—</strong><small>трлн ₸</small></div>
+      <div class="kpi"><span>Обязательства</span><strong id="kpi-liabilities">—</strong><small>трлн ₸</small></div>
+      <div class="kpi"><span>Доля вкладов физлиц</span><strong id="kpi-people">—</strong><small>в депозитах</small></div>
+    </div>
+
+    <div class="grid">
+      <section class="panel wide"><div class="panel-head"><h2>Активы по банкам</h2><span>трлн ₸ · выбранный месяц</span></div><div id="chart-assets" class="chart tall" role="img" aria-label="Активы по банкам"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Доля в активах</h2><span>структура выбранного среза</span></div><div id="chart-treemap" class="chart" role="img" aria-label="Карта активов банков"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Депозиты по банкам</h2><span>доли физлиц и юрлиц</span></div><div id="chart-deposit-banks" class="chart tall" role="img" aria-label="Структура депозитов по банкам"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Ссудный портфель</h2><span>трлн ₸ · июнь–декабрь</span></div><div id="chart-loans" class="chart" role="img" aria-label="Динамика ссудного портфеля"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Обязательства</h2><span>трлн ₸ · июнь–декабрь</span></div><div id="chart-liabilities" class="chart" role="img" aria-label="Динамика обязательств"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Просроченная задолженность</h2><span>млрд ₸ · сравнение месячных срезов</span></div><div id="chart-overdue" class="chart" role="img" aria-label="Просроченная задолженность по месяцам"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Кто держит депозиты</h2><span>выбранный месяц</span></div><div id="chart-deposit-mix" class="chart" role="img" aria-label="Депозиты физических и юридических лиц"></div></section>
+    </div>
+
+    <section class="panel table-panel">
+      <div class="panel-head"><h2>Числа за выбранный месяц</h2><span>сортировка по активам</span></div>
+      <div class="table-scroll"><table><thead><tr><th>Банк</th><th>Активы<br>трлн ₸</th><th>Кредиты<br>трлн ₸</th><th>Обязательства<br>трлн ₸</th><th>Просрочка<br>млрд ₸</th><th>Вклады физлиц<br>%</th></tr></thead><tbody id="bank-table"></tbody></table></div>
+    </section>
+  </section>
+
+  <section id="jusan" class="tab-panel" hidden>
+    <div class="jusan-intro"><p class="eyebrow">ОТДЕЛЬНАЯ СТРАНИЦА ИСХОДНОГО ОТЧЁТА</p><h2>First Heartland Jusan Bank</h2><p>Помесячная динамика активов, депозитов и ссудного портфеля.</p></div>
+    <section class="panel"><div class="panel-head"><h2>Ключевые показатели Jusan</h2><span>трлн ₸ · июнь–декабрь 2024</span></div><div id="chart-jusan" class="chart jusan-chart" role="img" aria-label="Активы, депозиты и ссудный портфель Jusan"></div></section>
+    <section class="panel observations"><div class="panel-head"><h2>Наблюдения из исходного отчёта</h2><span>текст автора отчёта</span></div>
+      <div class="observation-grid">
+        <div><h3>Активы банков</h3><ul><li>Народный банк явно доминирует по объёму активов.</li><li>Между банками наблюдается существенная разница в размерах активов.</li><li>Активы сохраняют стабильность в течение полугода.</li></ul></div>
+        <div><h3>Кредитование</h3><ul><li>Объёмы кредитных портфелей сильно различаются.</li><li>Народный банк лидирует в кредитовании.</li><li>Картина выдачи кредитов остаётся относительно стабильной.</li></ul></div>
+        <div><h3>Вклады и депозиты</h3><ul><li>Физические лица составляют около 57% всех депозитов.</li><li>Юридические лица — около 43% депозитов.</li><li>Объёмы вкладов показывают незначительные колебания.</li></ul></div>
+        <div><h3>Банковская система в целом</h3><ul><li>Финансовые показатели остаются устойчивыми.</li><li>Нет резких изменений.</li><li>Применяется консервативная политика банков.</li></ul></div>
+        <div><h3>Jusan</h3><ul><li>Показатели активов стабильны.</li><li>Наблюдается незначительное снижение к концу года.</li><li>Сохраняется финансовая устойчивость.</li></ul></div>
+      </div>
+      <p class="quoted-note">Главный вывод исходного отчёта: «Банковский сектор демонстрирует стабильность, умеренный рост и консервативный подход к управлению финансами». Текстовые оценки перенесены для полноты просмотра; страница не добавляет независимой проверки выводов.</p>
+    </section>
+  </section>
+
+  <footer class="foot"><p>Все графики пересчитаны из таблицы внутри предоставленного файла <code>banks.pbix</code>. Показатели показаны в трлн или млрд тенге: исходные значения интерпретированы как тыс. тенге по совпадению совокупных активов на 1 июня 2024 года (53,262 трлн ₸) с <a href="https://www.gov.kz/uploads/2024/7/17/1ed2e3d54c09363939f9dc1c0aac10ed_original.510170.pdf" target="_blank" rel="noopener">данными АРРФР</a>. Суммы месячных срезов не являются накопленным объёмом за период.</p><p>Интерактивная страница воссоздаёт визуальную часть Power BI; исходный файл не требуется для просмотра.</p></footer>
+</div>
+</body>
+</html>
